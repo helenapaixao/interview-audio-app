@@ -16,9 +16,11 @@ const questions = [
 const Question = () => {
   const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
   const [audioUrl, setAudioUrl] = useState<string | null>(null);
+  const [isTimerActive, setIsTimerActive] = useState(true);
 
   const handleSaveRecording = (url: string) => {
     setAudioUrl(url);
+    toast.success("Gravação salva!");
   };
 
   const handleNextQuestion = () => {
@@ -41,6 +43,7 @@ const Question = () => {
     if (currentQuestionIndex < questions.length - 1) {
       setCurrentQuestionIndex((prevIndex) => prevIndex + 1);
       setAudioUrl(null);
+      setIsTimerActive(true); 
       toast.info("Próxima pergunta!");
     } else {
       toast.success("Você completou todas as perguntas!", { position: "top-right" });
@@ -54,11 +57,13 @@ const Question = () => {
         <h2 className="text-xl font-bold">Pergunta:</h2>
         <p className="text-lg mt-4">{questions[currentQuestionIndex]}</p>
 
+        {/* Timer */}
         <div className="mt-6">
           <Countdown
-            key={currentQuestionIndex}
+            key={currentQuestionIndex} 
             duration={30}
             onComplete={() => {
+              setIsTimerActive(false); 
               toast.warning("Tempo esgotado! Salvando pergunta.");
               handleNextQuestion();
             }}
@@ -66,7 +71,11 @@ const Question = () => {
         </div>
 
         <div className="mt-6">
-          <AudioRecorder onStop={handleSaveRecording} />
+          <AudioRecorder
+            onStop={handleSaveRecording}
+            canRecord={isTimerActive} 
+            isReRecording={!!audioUrl} 
+          />
         </div>
       </div>
       <ToastContainer />
