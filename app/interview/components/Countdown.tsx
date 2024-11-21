@@ -7,8 +7,8 @@ import "react-toastify/dist/ReactToastify.css";
 interface CountdownProps {
   duration: number; 
   colors?: string[]; 
-  colorsTime?: { 0: number } & { 1: number } & number[]; 
-  onComplete?: () => void; 
+  colorsTime?: number[]; 
+  onComplete: () => void; 
 }
 
 const Countdown = ({
@@ -17,23 +17,21 @@ const Countdown = ({
   colorsTime = [10, 6, 3, 0], 
   onComplete,
 }: CountdownProps) => {
-  const handleComplete = () => {
-    toast.success("Tempo terminou!", { position: "top-right" }); 
-    if (onComplete) onComplete(); 
-    return { shouldRepeat: false }; 
-  };
-
   return (
     <div>
       <CountdownCircleTimer
         isPlaying
         duration={duration}
-        colors={colors.map((color, index) => ({ [index]: color })) as any}
+        colors={colors}
         colorsTime={colorsTime}
-        onComplete={handleComplete}
+        onComplete={() => {
+          toast.success("Tempo terminou!", { position: "top-right" }); 
+          onComplete(); 
+          return { shouldRepeat: false }; 
+        }}
       >
         {({ remainingTime }) => (
-          <div className="text-lg font-bold">{remainingTime} segundos restantes</div>
+          <div className="text-lg font-bold">{remainingTime} </div>
         )}
       </CountdownCircleTimer>
       <ToastContainer /> 
