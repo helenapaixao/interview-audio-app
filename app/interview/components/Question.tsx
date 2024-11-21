@@ -4,6 +4,8 @@ import { useState } from "react";
 import Header from "./Header";
 import Countdown from "./Countdown";
 import AudioRecorder from "./AudioRecorder";
+import { toast, ToastContainer } from "react-toastify";
+import "react-toastify/dist/ReactToastify.css";
 
 const questions = [
   "Fale sobre um projeto que você liderou.",
@@ -12,54 +14,62 @@ const questions = [
 ];
 
 const Question = () => {
-  const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0); // Índice da pergunta atual
+  const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
+  const [audioUrl, setAudioUrl] = useState<string | null>(null);
 
-  const handleNextQuestion = (audioUrl: string) => {
+  const handleSaveRecording = (url: string) => {
+    setAudioUrl(url);
+  };
+
+  const handleNextQuestion = () => {
     const currentQuestion = questions[currentQuestionIndex];
+    const currentTimestamp = new Date().toLocaleString();
 
-    // Recupera gravações existentes do localStorage
     const existingRecordings = JSON.parse(localStorage.getItem("recordings") || "[]");
 
-    // Adiciona a nova gravação
     const updatedRecordings = [
       ...existingRecordings,
-      { question: currentQuestion, audioUrl },
+      {
+        question: currentQuestion,
+        audioUrl: audioUrl || "Sem áudio gravado",
+        timestamp: currentTimestamp,
+      },
     ];
 
-    // Salva no localStorage
     localStorage.setItem("recordings", JSON.stringify(updatedRecordings));
 
-    // Avança para a próxima pergunta
     if (currentQuestionIndex < questions.length - 1) {
       setCurrentQuestionIndex((prevIndex) => prevIndex + 1);
+      setAudioUrl(null);
+      toast.info("Próxima pergunta!");
     } else {
-      alert("Você completou todas as perguntas!");
+      toast.success("Você completou todas as perguntas!", { position: "top-right" });
     }
   };
 
   return (
     <div>
-      {/* Header */}
       <Header />
-
-      {/* Corpo principal */}
       <div className="mt-20 flex flex-col items-center">
         <h2 className="text-xl font-bold">Pergunta:</h2>
         <p className="text-lg mt-4">{questions[currentQuestionIndex]}</p>
 
-        {/* Timer */}
         <div className="mt-6">
           <Countdown
+            key={currentQuestionIndex}
             duration={30}
-            onComplete={() => handleNextQuestion("")} // Substituir "" pelo áudio real
+            onComplete={() => {
+              toast.warning("Tempo esgotado! Salvando pergunta.");
+              handleNextQuestion();
+            }}
           />
         </div>
 
-        {/* Gravador de Áudio */}
         <div className="mt-6">
-          <AudioRecorder onStop={(audioUrl: string) => handleNextQuestion(audioUrl)} />
+          <AudioRecorder onStop={handleSaveRecording} />
         </div>
       </div>
+      <ToastContainer />
     </div>
   );
 };
