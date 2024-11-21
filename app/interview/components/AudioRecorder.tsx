@@ -1,63 +1,52 @@
 "use client";
 
-import { useState } from "react";
+import { useReactMediaRecorder } from "react-media-recorder";
+import { toast, ToastContainer } from "react-toastify";
+import "react-toastify/dist/ReactToastify.css";
 
-const AudioRecorder = () => {
-  const [mediaRecorder, setMediaRecorder] = useState<MediaRecorder | null>(null);
-  const [audioURL, setAudioURL] = useState<string | null>(null);
-  const [isRecording, setIsRecording] = useState(false);
+interface AudioRecorderProps {
+  onStop: (audioUrl: string) => void;
+}
 
-  const startRecording = async () => {
-    try {
-      const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+const AudioRecorder = ({ onStop }: AudioRecorderProps) => {
+  const { startRecording, stopRecording } = useReactMediaRecorder({
+    audio: true,
+    onStop: (blobUrl) => {
+      if (blobUrl) {
+        onStop(blobUrl); 
+        toast.success("Gravação finalizada com sucesso!");
+      }
+    },
+  });
 
-      const recorder = new MediaRecorder(stream);
-      setMediaRecorder(recorder);
-
-      const audioChunks: BlobPart[] = [];
-      recorder.ondataavailable = (event) => {
-        audioChunks.push(event.data);
-      };
-
-      recorder.onstop = () => {
-        const audioBlob = new Blob(audioChunks, { type: "audio/mp3" });
-        const audioUrl = URL.createObjectURL(audioBlob);
-        setAudioURL(audioUrl);
-      };
-
-      recorder.start();
-      setIsRecording(true);
-    } catch (error) {
-      console.error("Erro ao acessar o microfone:", error);
-      alert("Não foi possível acessar o microfone. Verifique as permissões do navegador.");
-    }
+  const handleStartRecording = () => {
+    startRecording();
+    toast.info("Gravação iniciada!");
   };
 
-  const stopRecording = () => {
-    if (mediaRecorder) {
-      mediaRecorder.stop();
-      setIsRecording(false);
+  const handleStopRecording = () => {
+    try {
+      stopRecording();
+    } catch (error) {
+      console.error("Erro ao parar a gravação:", error);
     }
   };
 
   return (
-    <div className="text-center">
-      <div className="my-4">
-        <button
-          onClick={isRecording ? stopRecording : startRecording}
-          className={`px-4 py-2 font-bold text-white rounded ${
-            isRecording ? "bg-red-500" : "bg-green-500"
-          }`}
-        >
-          {isRecording ? "Parar Gravação" : "Iniciar Gravação"}
-        </button>
-      </div>
-      {audioURL && (
-        <div>
-          <h3 className="text-lg font-bold">Prévia do Áudio:</h3>
-          <audio src={audioURL} controls className="mt-2" />
-        </div>
-      )}
+    <div className="text-center space-y-4">
+      <button
+        onClick={handleStartRecording}
+        className="px-6 py-3 bg-green-500 hover:bg-green-600 text-white rounded-full shadow-md transition-all duration-200 ease-in-out transform hover:scale-105"
+      >
+        🎙️ Iniciar Gravação
+      </button>
+      <button
+        onClick={handleStopRecording}
+        className="px-6 py-3 bg-red-500 hover:bg-red-600 text-white rounded-full shadow-md transition-all duration-200 ease-in-out transform hover:scale-105"
+      >
+        🛑 Parar Gravação
+      </button>
+      <ToastContainer />
     </div>
   );
 };
