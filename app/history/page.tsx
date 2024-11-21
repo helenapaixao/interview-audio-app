@@ -4,7 +4,8 @@ import { useEffect, useState } from "react";
 
 interface Recording {
   question: string;
-  audioUrl: string;
+  audioUrl: string | null; 
+  timestamp: string; 
 }
 
 const History = () => {
@@ -22,25 +23,34 @@ const History = () => {
       </header>
 
       <main className="mt-20 p-4">
-        <h2 className="text-xl font-bold text-center">Histórico</h2>
+        <h2 className="text-xl font-bold text-center mb-6">Histórico</h2>
         {recordings.length === 0 ? (
           <p className="text-center text-gray-600 mt-4">Nenhuma gravação encontrada.</p>
         ) : (
-          <ul className="mt-6 space-y-4">
-            {recordings.map((recording, index) => (
-              <li
-                key={index}
-                className="flex justify-between items-center bg-gray-100 p-4 rounded shadow-md"
-              >
-                <span className="font-semibold">{recording.question}</span>
-                {recording.audioUrl ? (
-                  <audio src={recording.audioUrl} controls className="ml-4" />
-                ) : (
-                  <span className="text-red-500 ml-4">Áudio não disponível</span>
-                )}
-              </li>
-            ))}
-          </ul>
+          <table className="w-full border-collapse border border-gray-300">
+            <thead className="bg-gray-200">
+              <tr>
+                <th className="border border-gray-300 px-4 py-2 text-left">Pergunta</th>
+                <th className="border border-gray-300 px-4 py-2 text-left">Áudio</th>
+                <th className="border border-gray-300 px-4 py-2 text-left">Data e Horário</th>
+              </tr>
+            </thead>
+            <tbody>
+              {recordings.map((recording, index) => (
+                <tr key={index} className="bg-white hover:bg-gray-100">
+                  <td className="border border-gray-300 px-4 py-2">{recording.question}</td>
+                  <td className="border border-gray-300 px-4 py-2">
+                    {recording.audioUrl ? (
+                      <audio src={recording.audioUrl} controls className="w-full" />
+                    ) : (
+                      <span className="text-red-500">Sem áudio gravado</span>
+                    )}
+                  </td>
+                  <td className="border border-gray-300 px-4 py-2">{recording.timestamp}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
         )}
       </main>
     </div>
